@@ -1,0 +1,21 @@
+{
+  "contractAddress": "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F",
+  "openseaId": "",
+  "network": "localhost",
+  "gasLimit": "90000",
+  "etherscan": {
+    "localhost": "url://tx/HASH",
+    "rinkeby": "https://rinkeby.etherscan.io/tx/HASH",
+    "homestead": "https://etherscan.io/tx/HASH"
+  },
+  "opensea": {
+    "localhost": "url://ID/TOKEN",
+    "rinkeby": "https://testnets.opensea.io/collection/ID",
+    "homestead": "https://opensea.io/assets/ID/TOKEN"
+  },
+  "infura": {
+    "localhost": "https://doesnt-exist.infura.io/v3/",
+    "rinkeby": "https://rinkeby.infura.io/v3/",
+    "homestead": "https://mainnet.infura.io/v3/"
+  }
+}

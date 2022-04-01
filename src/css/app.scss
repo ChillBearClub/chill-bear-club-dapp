@@ -1,0 +1,32 @@
+// app global css in SCSS form
+@import "./fonts.css";
+
+html {
+  background-color: #7ab5fa;
+}
+
+body {
+  background: url("~assets/background.png") no-repeat left;
+  background-size: cover;
+  font-family: Inter, sans-serif;
+}
+
+.blog-width {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.circle {
+  border-radius: 50%;
+}
+
+.title {
+  font-family: Chillbearclub, sans-serif;
+  font-size: 3rem;
+  padding-bottom: 0;
+}
+
+.bear-font {
+  font-family: Chillbearclub, sans-serif;
+  padding-bottom: 0;
+}

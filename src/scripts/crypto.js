@@ -19,6 +19,17 @@ const mintWhitelist = {
 const keysOgWhitelist = Object.keys(ogWhitelist);
 const keysMintWhitelist = Object.keys(mintWhitelist);
 
+/*
+  Whitelist stuff is handled here. Swap to use a database instead of json.
+ */
+export function inWhitelist(address) {
+  if (!address) {
+    return [false, false];
+  }
+
+  return [keysOgWhitelist.includes(address), keysMintWhitelist.includes(address)];
+}
+
 // eslint-disable-next-line no-unused-vars
 export function getContract () {
   switch (network) {
@@ -59,14 +70,6 @@ export async function getMintingInfo() {
   const contract = getContract();
 
   return await contract.getMintingInfo()
-}
-
-export function inWhitelist(address) {
-  if (!address) {
-    return [false, false];
-  }
-
-  return [keysOgWhitelist.includes(address), keysMintWhitelist.includes(address)];
 }
 
 export function getSignature(address, state) {

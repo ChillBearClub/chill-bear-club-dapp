@@ -1,7 +1,7 @@
 {
-  "contractAddress": "0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44",
+  "contractAddress": "0x52fef0485a3c305135c993709303af04f1f6141b",
   "openseaId": "",
-  "network": "localhost",
+  "network": "rinkeby",
   "gasLimit": {
     "localhost": "120000",
     "rinkeby": "120000",

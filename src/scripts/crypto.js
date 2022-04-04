@@ -1,23 +1,24 @@
-import {ethers} from 'ethers';
-import {
-  contractAddress,
-  network,
-  gasLimit
-} from './config.json';
-import abi from './abi.json'
-import {keys} from "./keys";
+import { ethers } from "ethers";
+import { contractAddress, network, gasLimit } from "./config.json";
+import abi from "./abi.json";
+import { keys } from "./keys";
 import { getState } from "src/scripts/web3modal";
+import { initializeApp } from "firebase/app";
+import { getDatabase, onValue, ref } from "firebase/database";
 
-const ogWhitelist = {
-  "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266": "0xe486d8750a6824572d312cc9f1b4eeb05983d2d6eff4ff7a43e9d593ed3b6e5f1e451ccfad03efcf7e53c671bdee32399860ad1314ef2b6ccf6e72936b46f0021b"
-}
+const firebaseConfig = {
+  apiKey: "AIzaSyDka0wKFRhlAHRbgzAoFjW18Sa4ZW2y5rY",
+  authDomain: "chill-bears-dapp.firebaseapp.com",
+  databaseURL: "https://chill-bears-dapp-default-rtdb.firebaseio.com",
+  projectId: "chill-bears-dapp",
+  storageBucket: "chill-bears-dapp.appspot.com",
+  messagingSenderId: "287457261991",
+  appId: "1:287457261991:web:2a2464867372ff9189de82",
+};
 
-const mintWhitelist = {
-  "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266": "0x0cb5f2707779110c28efda5e2851758a6efaf578ac497b5ea346a622523bd3781d2e53642fada98a44b46ed9eb2a47a296751737df7deea330d3cb05836f00721b"
-}
-
-const keysOgWhitelist = Object.keys(ogWhitelist);
-const keysMintWhitelist = Object.keys(mintWhitelist);
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase();
 
 /*
   Whitelist stuff is handled here. Swap to use a database instead of json.
@@ -26,12 +27,25 @@ export function inWhitelist(address) {
   if (!address) {
     return [false, false];
   }
+  const OGRef = ref(db, "OGlist/" + address + "/");
+  onValue(OGRef, (snapshot) => {
+    const OGSig = snapshot.val();
+    console.log(OGSig);
+  });
+  const WLRef = ref(db, "Whitelist/" + address + "/");
+  onValue(WLRef, (snapshot) => {
+    const WLSig = snapshot.val();
+    console.log(WLSig);
+  });
 
-  return [keysOgWhitelist.includes(address), keysMintWhitelist.includes(address)];
+  return [
+    keysOgWhitelist.includes(address),
+    keysMintWhitelist.includes(address),
+  ];
 }
 
 // eslint-disable-next-line no-unused-vars
-export function getContract () {
+export function getContract() {
   switch (network) {
     case "rinkeby":
     case "homestead":
@@ -46,30 +60,30 @@ function getContractJson() {
   return new ethers.Contract(contractAddress, abi, provider);
 }
 
-function getContractInfura () {
-  const provider = new ethers.providers.InfuraProvider(network, keys.INFURA_KEY);
-  return [
-    new ethers.Contract(contractAddress, abi, provider),
-    provider
-  ]
+function getContractInfura() {
+  const provider = new ethers.providers.InfuraProvider(
+    network,
+    keys.INFURA_KEY
+  );
+  return [new ethers.Contract(contractAddress, abi, provider), provider];
 }
 
 export const getMintCount = async () => {
   const contract = getContract();
 
-  return await contract.totalSupply()
-}
+  return await contract.totalSupply();
+};
 
 export const getSalesStatus = async () => {
   const contract = getContract();
 
-  return await contract.getSalesStatus()
-}
+  return await contract.getSalesStatus();
+};
 
 export async function getMintingInfo() {
   const contract = getContract();
 
-  return await contract.getMintingInfo()
+  return await contract.getMintingInfo();
 }
 
 export function getSignature(address, state) {
@@ -77,12 +91,16 @@ export function getSignature(address, state) {
     return undefined;
   }
 
-  return state[0] ? ogWhitelist[address] : state[1] ? mintWhitelist[address] : undefined;
+  return state[0]
+    ? ogWhitelist[address]
+    : state[1]
+    ? mintWhitelist[address]
+    : undefined;
 }
 
 export async function doOgMint(amount, cost, digits) {
   if (amount < 0 || amount > 2) {
-    throw new Error('Invalid amount provided!');
+    throw new Error("Invalid amount provided!");
   }
 
   // get signer
@@ -92,16 +110,18 @@ export async function doOgMint(amount, cost, digits) {
   const address = await signer.getAddress();
   const contract = getContract().connect(signer);
 
-  const wei = ethers.utils.parseEther((cost * amount).toFixed(digits).toString());
+  const wei = ethers.utils.parseEther(
+    (cost * amount).toFixed(digits).toString()
+  );
   const tx = {
     value: wei,
-    nonce: await provider.getTransactionCount(address) || undefined,
-    gasLimit: gasLimit[network] * amount
+    nonce: (await provider.getTransactionCount(address)) || undefined,
+    gasLimit: gasLimit[network] * amount,
   };
 
   const [og, _] = inWhitelist(address);
   if (!og) {
-    throw new Error('You are not in the OG whitelist!');
+    throw new Error("You are not in the OG whitelist!");
   }
 
   return contract[`ogMint${amount}`](getSignature(address, [true, false]), tx);
@@ -109,7 +129,7 @@ export async function doOgMint(amount, cost, digits) {
 
 export async function doPreSaleMint(amount, cost, digits) {
   if (amount !== 1) {
-    throw new Error('Invalid amount provided!');
+    throw new Error("Invalid amount provided!");
   }
 
   // get signer
@@ -119,16 +139,18 @@ export async function doPreSaleMint(amount, cost, digits) {
   const address = await signer.getAddress();
   const contract = getContract().connect(signer);
 
-  const wei = ethers.utils.parseEther((cost * amount).toFixed(digits).toString());
+  const wei = ethers.utils.parseEther(
+    (cost * amount).toFixed(digits).toString()
+  );
   const tx = {
     value: wei,
-    nonce: await provider.getTransactionCount(address) || undefined,
-    gasLimit: gasLimit[network] * amount
+    nonce: (await provider.getTransactionCount(address)) || undefined,
+    gasLimit: gasLimit[network] * amount,
   };
 
   const [_, presale] = inWhitelist(address);
   if (!presale) {
-    throw new Error('You are not in the presale whitelist!');
+    throw new Error("You are not in the presale whitelist!");
   }
 
   return contract.preMint(getSignature(address, [false, true]), tx);
@@ -136,7 +158,7 @@ export async function doPreSaleMint(amount, cost, digits) {
 
 export async function doMint(amount, cost, digits) {
   if (amount !== 1) {
-    throw new Error('Invalid amount provided!');
+    throw new Error("Invalid amount provided!");
   }
 
   // get signer
@@ -146,11 +168,13 @@ export async function doMint(amount, cost, digits) {
   const address = await signer.getAddress();
   const contract = getContract().connect(signer);
 
-  const wei = ethers.utils.parseEther((cost * amount).toFixed(digits).toString());
+  const wei = ethers.utils.parseEther(
+    (cost * amount).toFixed(digits).toString()
+  );
   const tx = {
     value: wei,
-    nonce: await provider.getTransactionCount(address) || undefined,
-    gasLimit: gasLimit[network] * amount
+    nonce: (await provider.getTransactionCount(address)) || undefined,
+    gasLimit: gasLimit[network] * amount,
   };
 
   return contract.mint(tx);

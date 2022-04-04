@@ -23,25 +23,39 @@ const db = getDatabase();
 /*
   Whitelist stuff is handled here. Swap to use a database instead of json.
  */
-export function inWhitelist(address) {
+export async function inWhitelist(address) {
   if (!address) {
     return [false, false];
   }
-  const OGRef = ref(db, "OGlist/" + address + "/");
-  onValue(OGRef, (snapshot) => {
-    const OGSig = snapshot.val();
-    console.log(OGSig);
-  });
-  const WLRef = ref(db, "Whitelist/" + address + "/");
-  onValue(WLRef, (snapshot) => {
-    const WLSig = snapshot.val();
-    console.log(WLSig);
-  });
 
-  return [
-    keysOgWhitelist.includes(address),
-    keysMintWhitelist.includes(address),
-  ];
+  return await new Promise((resolve, reject) => {
+    const OGRef = ref(db, "OGlist/" + address + "/");
+    const WLRef = ref(db, "Whitelist/" + address + "/");
+
+    let ranOg = false;
+    let ranWl = false;
+
+    let ogSig;
+    let wlSig;
+
+    onValue(OGRef, (snapshot) => {
+      ogSig = snapshot.val();
+      ranOg = true;
+      validateOutput();
+    });
+
+    onValue(WLRef, (snapshot) => {
+      wlSig = snapshot.val();
+      ranWl = true;
+      validateOutput();
+    });
+
+    function validateOutput() {
+      if (ranOg && ranWl) {
+        resolve([ogSig !== null, wlSig !== null])
+      }
+    }
+  });
 }
 
 // eslint-disable-next-line no-unused-vars
@@ -119,7 +133,7 @@ export async function doOgMint(amount, cost, digits) {
     gasLimit: gasLimit[network] * amount,
   };
 
-  const [og, _] = inWhitelist(address);
+  const [og, _] = await inWhitelist(address);
   if (!og) {
     throw new Error("You are not in the OG whitelist!");
   }
@@ -148,7 +162,7 @@ export async function doPreSaleMint(amount, cost, digits) {
     gasLimit: gasLimit[network] * amount,
   };
 
-  const [_, presale] = inWhitelist(address);
+  const [_, presale] = await inWhitelist(address);
   if (!presale) {
     throw new Error("You are not in the presale whitelist!");
   }

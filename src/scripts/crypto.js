@@ -96,7 +96,7 @@ export async function doOgMint(amount, cost, digits) {
   const tx = {
     value: wei,
     nonce: await provider.getTransactionCount(address) || undefined,
-    gasLimit: gasLimit * amount
+    gasLimit: gasLimit[network] * amount
   };
 
   const [og, _] = inWhitelist(address);
@@ -123,7 +123,7 @@ export async function doPreSaleMint(amount, cost, digits) {
   const tx = {
     value: wei,
     nonce: await provider.getTransactionCount(address) || undefined,
-    gasLimit: gasLimit * amount
+    gasLimit: gasLimit[network] * amount
   };
 
   const [_, presale] = inWhitelist(address);
@@ -150,7 +150,7 @@ export async function doMint(amount, cost, digits) {
   const tx = {
     value: wei,
     nonce: await provider.getTransactionCount(address) || undefined,
-    gasLimit: gasLimit * amount
+    gasLimit: gasLimit[network] * amount
   };
 
   return contract.mint(tx);

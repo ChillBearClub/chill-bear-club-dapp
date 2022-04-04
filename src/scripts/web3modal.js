@@ -1,29 +1,26 @@
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
-import {ethers} from "ethers";
-import {
-  network,
-  infura
-} from './config.json';
-import {keys} from "src/scripts/keys";
+import { ethers } from "ethers";
+import { network, infura } from "./config.json";
+import { keys } from "src/scripts/keys";
 
 const providerOptions = {
   walletconnect: {
     package: WalletConnectProvider,
     options: {
       infuraId: `${keys.INFURA_KEY}`,
-    }
-  }
+    },
+  },
 };
 
 const web3Modal = new Web3Modal({
-  network: network === 'homestead' ? 'mainnet' : network,
+  network: network === "homestead" ? "mainnet" : network,
   cacheProvider: true,
   providerOptions,
-  theme: 'light'
-})
+  theme: "light",
+});
 
-let state = {}
+let state = {};
 let setProviderEvents = false;
 
 // events
@@ -37,28 +34,28 @@ function subscribeProvider(provider) {
 
   setProviderEvents = true;
 
-  provider.on('close', () => {
+  provider.on("close", () => {
     // console.log('close')
     // reset
     onReset();
-  })
+  });
 
-  provider.on('accountsChanged', (accounts) => {
+  provider.on("accountsChanged", (accounts) => {
     // console.log('accountsChanged')
-    web3Modal.clearCachedProvider()
+    web3Modal.clearCachedProvider();
     state.address = accounts[0];
     onUpdateState();
 
-    window.location.reload()
-  })
+    window.location.reload();
+  });
 
-  provider.on('chainChanged', (chainId) => {
-    window.location.reload()
-  })
+  provider.on("chainChanged", (chainId) => {
+    window.location.reload();
+  });
 
-  provider.on('networkChanged', (networkId) => {
-    window.location.reload()
-  })
+  provider.on("networkChanged", (networkId) => {
+    window.location.reload();
+  });
 }
 
 export async function signIn() {
@@ -84,7 +81,7 @@ export async function signIn() {
     connected: true,
     address,
     chainId,
-    networkName: name
+    networkName: name,
   };
 
   if (onUpdateState) {
@@ -93,26 +90,26 @@ export async function signIn() {
 }
 
 export function setOnReset(func) {
-  onReset = func
+  onReset = func;
 }
 
 export function setOnUpdateState(func) {
-  onUpdateState = func
+  onUpdateState = func;
   onUpdateState();
 }
 
 export function hasCachedProvider() {
-  return web3Modal.cachedProvider
+  return web3Modal.cachedProvider;
 }
 
 export function clearProvider() {
-  web3Modal.clearCachedProvider()
+  web3Modal.clearCachedProvider();
 }
 
 export function getState() {
-  return state
+  return state;
 }
 
 export function setState(val) {
-  state = val
+  state = val;
 }

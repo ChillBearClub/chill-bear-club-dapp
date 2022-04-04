@@ -1,6 +1,8 @@
 <template>
   <q-page class="flex">
-    <div class="flex column full-width flex-center items-center q-pt-md q-pb-xl">
+    <div
+      class="flex column full-width flex-center items-center q-pt-md q-pb-xl"
+    >
       <div class="logo-holder">
         <q-img alt="Logo" src="~assets/logo.png" />
       </div>
@@ -12,73 +14,107 @@
       <div class="info-holder flex flex-center">
         <div :class="informationClasses">
           <div class="flex flex-center col-4 column">
-            <div class="text-center q-pb-md title text-weight-bolder">Minted</div>
-            <div class="text-center">{{mintRemainder}} / {{mintTotal}}</div>
+            <div class="text-center q-pb-md title text-weight-bolder">
+              Minted
+            </div>
+            <div class="text-center">{{ mintRemainder }} / {{ mintTotal }}</div>
           </div>
           <div class="flex flex-center col-4 column">
-            <div class="text-center q-pb-md title text-weight-bolder">Price</div>
-            <div class="text-center">{{mintPrice}} ETH</div>
+            <div class="text-center q-pb-md title text-weight-bolder">
+              Price
+            </div>
+            <div class="text-center">{{ mintPrice }} ETH</div>
           </div>
           <div class="flex flex-center col-4 column">
-            <div class="text-center q-pb-md title text-weight-bolder">Wallet</div>
-            <div class="text-center">{{connectionStateArray[connectionState].wallet}}</div>
+            <div class="text-center q-pb-md title text-weight-bolder">
+              Wallet
+            </div>
+            <div class="text-center">
+              {{ connectionStateArray[connectionState].wallet }}
+            </div>
           </div>
         </div>
       </div>
 
       <div v-if="isLoading">
-        <q-inner-loading
-          style="position: relative; background: none"
-          showing
-        />
+        <q-inner-loading style="position: relative; background: none" showing />
       </div>
       <div v-else class="flex flex-center column">
-        <div class="text-center q-pt-sm bear-font text-weight-bolder" style="font-size: 2.5rem">{{connectionStateArray[connectionState].status}}</div>
-        <q-btn v-if="connectionState === 0 || connectionState === 2" class="connect-btn" size="large" @click="pressConnect">{{connectionStateArray[connectionState].text}}</q-btn>
-        <div v-if="!invalidUser && isOg" class="flex row flex-center" style="gap: 24px">
-          <q-btn class="connect-btn" size="large" @click="ogMint(1)">Og Mint 1</q-btn>
-          <q-btn class="connect-btn" size="large" @click="ogMint(2)">Og Mint 2</q-btn>
+        <div
+          class="text-center q-pt-sm bear-font text-weight-bolder"
+          style="font-size: 2.5rem"
+        >
+          {{ connectionStateArray[connectionState].status }}
+        </div>
+        <q-btn
+          v-if="connectionState === 0 || connectionState === 2"
+          class="connect-btn"
+          size="large"
+          @click="pressConnect"
+          >{{ connectionStateArray[connectionState].text }}</q-btn
+        >
+        <div
+          v-if="!invalidUser && isOg"
+          class="flex row flex-center"
+          style="gap: 24px"
+        >
+          <q-btn class="connect-btn" size="large" @click="ogMint(1)"
+            >Og Mint 1</q-btn
+          >
+          <q-btn class="connect-btn" size="large" @click="ogMint(2)"
+            >Og Mint 2</q-btn
+          >
         </div>
         <div v-if="!invalidUser && isPremint" class="flex row flex-center">
-          <q-btn class="connect-btn" size="large" @click="preSaleMint(1)">Presale Mint 1</q-btn>
+          <q-btn class="connect-btn" size="large" @click="preSaleMint(1)"
+            >Presale Mint 1</q-btn
+          >
         </div>
         <div v-if="!invalidUser && isPublicMint" class="flex row flex-center">
-          <q-btn class="connect-btn" size="large" @click="publicSaleMint(1)">Public Mint 1</q-btn>
+          <q-btn class="connect-btn" size="large" @click="publicSaleMint(1)"
+            >Public Mint 1</q-btn
+          >
         </div>
-        <div v-if="invalidUser && connectionState !== 0 && (isOg || isPremint)" class="text-center q-pt-md">Sorry you are not whitelisted, please wait for Public sale</div>
+        <div
+          v-if="invalidUser && connectionState !== 0 && (isOg || isPremint)"
+          class="text-center q-pt-md"
+        >
+          Sorry you are not whitelisted, please wait for Public sale
+        </div>
       </div>
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { useQuasar } from 'quasar'
+import { useQuasar } from "quasar";
 import { computed, onMounted, reactive, ref } from "vue";
-import { useStore } from 'vuex'
+import { useStore } from "vuex";
 import { getState, signIn } from "src/scripts/web3modal";
 import { getUsefulError, trimAddress } from "src/scripts/util";
-import {
-  contractAddress,
-  opensea,
-  network
-} from "src/scripts/config"
+import { contractAddress, opensea, network } from "src/scripts/config";
 import {
   doMint,
   doOgMint,
-  doPreSaleMint, getMintCount,
+  doPreSaleMint,
+  getMintCount,
   getMintingInfo,
   getSalesStatus,
-  inWhitelist
+  inWhitelist,
 } from "src/scripts/crypto";
 import { ethers } from "ethers";
 
-const $q = useQuasar()
-const store = useStore()
+const $q = useQuasar();
+const store = useStore();
 const connectionStateArray = ref([
-  { text: 'Connect', wallet: 'Please connect', status: 'Connect wallet to begin' },
-  { text: 'Mint', wallet: '', status: 'Current status: -' },
-  { text: 'Buy on OpenSea', wallet: '', status: 'Current status: Sold out!' }
-])
+  {
+    text: "Connect",
+    wallet: "Please connect",
+    status: "Connect wallet to begin",
+  },
+  { text: "Mint", wallet: "", status: "Current status: -" },
+  { text: "Buy on OpenSea", wallet: "", status: "Current status: Sold out!" },
+]);
 const connectionState = ref(0);
 const mintRemainder = ref(0);
 const mintTotal = ref(0);
@@ -100,31 +136,36 @@ const data = ref({
 
 const informationClasses = computed(() => {
   const isMobile = $q.screen.lt.md;
-  return `inner flex items-start ${isMobile ? 'column flex-center' : 'row flex-start'}`;
-})
+  return `inner flex items-start ${
+    isMobile ? "column flex-center" : "row flex-start"
+  }`;
+});
 
 onMounted(() => {
-  store.subscribe(async (mutation, state) => updateState())
+  store.subscribe(async (mutation, state) => updateState());
   updateState();
 
   setTimeout(() => {
     isLoading.value = false;
-  }, 500)
-})
+  }, 500);
+});
 
 async function pressConnect() {
-  switch(connectionState.value) {
+  switch (connectionState.value) {
     case 0:
       const state = getState();
 
       if (state.address) {
-        showSuccess('Wallet connected to Chill Bear Club! 👍', 3000)
+        showSuccess("Wallet connected to Chill Bear Club! 👍", 3000);
       } else {
-        await signIn().catch(err => showError(getUsefulError(err)))
+        await signIn().catch((err) => showError(getUsefulError(err)));
       }
       break;
     case 2:
-      window.open(opensea[network].replace('ID', contractAddress).replace('TOKEN', ''), '_blank')
+      window.open(
+        opensea[network].replace("ID", contractAddress).replace("TOKEN", ""),
+        "_blank"
+      );
       break;
   }
 }
@@ -138,15 +179,15 @@ function onValidNetwork() {
 
 function showNetworkError() {
   let n = network;
-  if (n === 'homestead') {
-    n = 'mainnet'
+  if (n === "homestead") {
+    n = "mainnet";
   }
   $q.notify({
     message: `Please connect to ${n}!`,
-    color: 'red',
-    position: 'bottom',
-    timeout: 3000
-  })
+    color: "red",
+    position: "bottom",
+    timeout: 3000,
+  });
 }
 
 async function ogMint(amount) {
@@ -155,22 +196,22 @@ async function ogMint(amount) {
     return;
   }
 
-  const output = await doOgMint(amount, data.value.ogPrice, 6)
-    .catch(err => showError(getUsefulError(err)));
+  const output = await doOgMint(amount, data.value.ogPrice, 6).catch((err) =>
+    showError(getUsefulError(err))
+  );
 
   if (!output) {
     return;
   }
 
-  const tx = await output.wait()
-    .catch(err => showError(getUsefulError(err)));
+  const tx = await output.wait().catch((err) => showError(getUsefulError(err)));
 
   if (!tx) {
     return;
   }
 
-  showSuccess(`Successfully minted ${amount} tokens! 👍`, 3000)
-  await updateInterface()
+  showSuccess(`Successfully minted ${amount} tokens! 👍`, 3000);
+  await updateInterface();
 }
 
 async function preSaleMint(amount) {
@@ -179,22 +220,22 @@ async function preSaleMint(amount) {
     return;
   }
 
-  const output = await doPreSaleMint(amount, data.value.preSalePrice, 5)
-    .catch(err => showError(getUsefulError(err)));
+  const output = await doPreSaleMint(amount, data.value.preSalePrice, 5).catch(
+    (err) => showError(getUsefulError(err))
+  );
 
   if (!output) {
     return;
   }
 
-  const tx = await output.wait()
-    .catch(err => showError(getUsefulError(err)));
+  const tx = await output.wait().catch((err) => showError(getUsefulError(err)));
 
   if (!tx) {
     return;
   }
 
-  showSuccess(`Successfully minted ${amount} tokens! 👍`, 3000)
-  await updateInterface()
+  showSuccess(`Successfully minted ${amount} tokens! 👍`, 3000);
+  await updateInterface();
 }
 
 async function publicSaleMint(amount) {
@@ -203,22 +244,22 @@ async function publicSaleMint(amount) {
     return;
   }
 
-  const output = await doMint(amount, data.value.publicSalePrice, 3)
-    .catch(err => showError(getUsefulError(err)));
+  const output = await doMint(amount, data.value.publicSalePrice, 3).catch(
+    (err) => showError(getUsefulError(err))
+  );
 
   if (!output) {
     return;
   }
 
-  const tx = await output.wait()
-    .catch(err => showError(getUsefulError(err)));
+  const tx = await output.wait().catch((err) => showError(getUsefulError(err)));
 
   if (!tx) {
     return;
   }
 
-  showSuccess(`Successfully minted ${amount} tokens! 👍`, 3000)
-  await updateInterface()
+  showSuccess(`Successfully minted ${amount} tokens! 👍`, 3000);
+  await updateInterface();
 }
 
 async function updateState() {
@@ -231,30 +272,44 @@ async function updateState() {
     connectionStateArray.value[2].wallet = trimAddress(webState.address);
 
     $q.notify({
-      message: 'Wallet connected to Chill Bear Club! 👍',
-      color: 'green',
-      position: 'bottom-right',
+      message: "Wallet connected to Chill Bear Club! 👍",
+      color: "green",
+      position: "bottom-right",
       actions: [
-        { label: 'Ok', color: 'white', handler: () => { /* ... */ } }
+        {
+          label: "Ok",
+          color: "white",
+          handler: () => {
+            /* ... */
+          },
+        },
       ],
-      timeout: 3000
-    })
+      timeout: 3000,
+    });
 
     // check statuses
-    await updateInterface()
+    await updateInterface();
   }
 }
 
 async function updateInterface() {
   const webState = getState();
   const [og, whitelist, normal] = await getSalesStatus();
-  const whitelistText = 'OG and Presale minting live!';
-  const whitelistTextOG = 'OG minting live!';
-  const whitelistTextPresale = 'Presale minting live!';
-  const mintText = 'Public minting live!';
-  const noneText = 'Minting not started';
+  const whitelistText = "OG and Presale minting live!";
+  const whitelistTextOG = "OG minting live!";
+  const whitelistTextPresale = "Presale minting live!";
+  const mintText = "Public minting live!";
+  const noneText = "Minting not started";
   connectionStateArray.value[1].status = `Current status: ${
-    whitelist && og ? whitelistText : og ? whitelistTextOG : whitelist ? whitelistTextPresale : normal ? mintText : noneText
+    whitelist && og
+      ? whitelistText
+      : og
+      ? whitelistTextOG
+      : whitelist
+      ? whitelistTextPresale
+      : normal
+      ? mintText
+      : noneText
   }`;
 
   const mintInfo = await getMintingInfo();
@@ -263,10 +318,21 @@ async function updateInterface() {
 
   data.value.preMintSupply = Number.parseInt(mintInfo.preMintSupply);
   data.value.publicSaleSupply = Number.parseInt(mintInfo.publicSaleSupply);
-  data.value.ogPrice = Number.parseFloat(ethers.utils.formatUnits(mintInfo.ogPrice.toString(), 'ether').toString());
-  data.value.preSalePrice = Number.parseFloat(ethers.utils.formatUnits(mintInfo.preSalePrice.toString(), 'ether').toString());
-  data.value.publicSalePrice = Number.parseFloat(ethers.utils.formatUnits(mintInfo.publicSalePrice.toString(), 'ether').toString());
-  data.value.EIP2981RoyaltyPercentage = Number.parseFloat(mintInfo.EIP2981RoyaltyPercentage) / 100;
+  data.value.ogPrice = Number.parseFloat(
+    ethers.utils.formatUnits(mintInfo.ogPrice.toString(), "ether").toString()
+  );
+  data.value.preSalePrice = Number.parseFloat(
+    ethers.utils
+      .formatUnits(mintInfo.preSalePrice.toString(), "ether")
+      .toString()
+  );
+  data.value.publicSalePrice = Number.parseFloat(
+    ethers.utils
+      .formatUnits(mintInfo.publicSalePrice.toString(), "ether")
+      .toString()
+  );
+  data.value.EIP2981RoyaltyPercentage =
+    Number.parseFloat(mintInfo.EIP2981RoyaltyPercentage) / 100;
 
   mintTotal.value = 5555;
   mintRemainder.value = await getMintCount();
@@ -275,14 +341,15 @@ async function updateInterface() {
   if (!normal) {
     // mintRemainder.value = 5 - data.value.preMintSupply;
 
-    if ((addressStatus[0] || addressStatus[1])) {
+    if (addressStatus[0] || addressStatus[1]) {
       isOg.value = addressStatus[0] && og;
       isPremint.value = !addressStatus[0] && addressStatus[1] && whitelist;
 
-      mintPrice.value =
-        addressStatus[0] ? data.value.ogPrice :
-          addressStatus[1] ? data.value.preSalePrice :
-            0;
+      mintPrice.value = addressStatus[0]
+        ? data.value.ogPrice
+        : addressStatus[1]
+        ? data.value.preSalePrice
+        : 0;
 
       invalidUser.value = !isOg.value && !isPremint.value;
     } else {
@@ -304,24 +371,36 @@ async function updateInterface() {
 function showSuccess(msg, timeout) {
   $q.notify({
     message: msg,
-    color: 'green',
-    position: 'bottom-right',
+    color: "green",
+    position: "bottom-right",
     actions: [
-      { label: 'Ok', color: 'white', handler: () => { /* ... */ } }
+      {
+        label: "Ok",
+        color: "white",
+        handler: () => {
+          /* ... */
+        },
+      },
     ],
-    timeout
-  })
+    timeout,
+  });
 }
 
 function showError(err) {
   $q.notify({
     message: err,
-    color: 'red',
-    position: 'bottom-right',
+    color: "red",
+    position: "bottom-right",
     actions: [
-      { label: 'Ok', color: 'white', handler: () => { /* ... */ } }
-    ]
-  })
+      {
+        label: "Ok",
+        color: "white",
+        handler: () => {
+          /* ... */
+        },
+      },
+    ],
+  });
 }
 </script>
 

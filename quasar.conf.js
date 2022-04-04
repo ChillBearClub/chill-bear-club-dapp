@@ -42,7 +42,7 @@ module.exports = configure(function (ctx) {
 
     // Full list of options: https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-build
     build: {
-      env: require('dotenv').config().parsed,
+      env: require("dotenv").config().parsed,
       vueRouterMode: "history", // available values: 'hash', 'history'
 
       // transpile: false,
@@ -65,11 +65,11 @@ module.exports = configure(function (ctx) {
       // https://quasar.dev/quasar-cli/handling-webpack
       // "chain" is a webpack-chain object https://github.com/neutrinojs/webpack-chain
       chainWebpack(chain) {
-        const nodePolyfillWebpackPlugin = require('node-polyfill-webpack-plugin')
+        const nodePolyfillWebpackPlugin = require("node-polyfill-webpack-plugin");
         chain
           .plugin("eslint-webpack-plugin")
           .use(ESLintPlugin, [{ extensions: ["js", "vue"] }]);
-        chain.plugin('node-polyfill').use(nodePolyfillWebpackPlugin)
+        chain.plugin("node-polyfill").use(nodePolyfillWebpackPlugin);
       },
     },
 
@@ -85,7 +85,7 @@ module.exports = configure(function (ctx) {
     // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-framework
     framework: {
       config: {
-        notify: {}
+        notify: {},
       },
 
       // iconSet: 'material-icons', // Quasar icon set
@@ -99,9 +99,7 @@ module.exports = configure(function (ctx) {
       // directives: [],
 
       // Quasar plugins
-      plugins: [
-        'Notify'
-      ],
+      plugins: ["Notify"],
     },
 
     // animations: 'all', // --- includes all animations

@@ -1,6 +1,6 @@
 <template>
   <q-page class="flex">
-    <div class="flex column full-width flex-center items-center q-pt-xl q-pb-xl">
+    <div class="flex column full-width flex-center items-center q-pt-md q-pb-xl">
       <div class="logo-holder">
         <q-img alt="Logo" src="~assets/logo.png" />
       </div>

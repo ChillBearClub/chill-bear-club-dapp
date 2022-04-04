@@ -222,7 +222,6 @@ async function updateInterface() {
 
   isPublicMint.value = normal;
 
-  data.value.ogMintSupply = Number.parseInt(mintInfo.ogMintSupply);
   data.value.preMintSupply = Number.parseInt(mintInfo.preMintSupply);
   data.value.publicSaleSupply = Number.parseInt(mintInfo.publicSaleSupply);
   data.value.ogPrice = Number.parseFloat(ethers.utils.formatUnits(mintInfo.ogPrice.toString(), 'ether').toString());
@@ -235,7 +234,7 @@ async function updateInterface() {
 
   const addressStatus = await inWhitelist(webState.address);
   if (!normal) {
-    mintRemainder.value = 2 - data.value.ogMintSupply + 3 - data.value.preMintSupply;
+    // mintRemainder.value = 5 - data.value.preMintSupply;
 
     if (addressStatus[0] || addressStatus[1]) {
       isOg.value = addressStatus[0];

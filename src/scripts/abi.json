@@ -8,11 +8,6 @@
       },
       {
         "internalType": "uint256",
-        "name": "ogMintSupply",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
         "name": "preMintSupply",
         "type": "uint256"
       },
@@ -117,25 +112,6 @@
       }
     ],
     "name": "EIP2981RoyaltyPercentageChanged",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "prevSupply",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "newSupply",
-        "type": "uint256"
-      }
-    ],
-    "name": "OgMintSupplyChanged",
     "type": "event"
   },
   {
@@ -330,24 +306,6 @@
   {
     "inputs": [
       {
-        "internalType": "uint256[]",
-        "name": "amount",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "address[]",
-        "name": "to",
-        "type": "address[]"
-      }
-    ],
-    "name": "batchMintFromReserve",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
@@ -368,11 +326,6 @@
     "inputs": [],
     "name": "getMintingInfo",
     "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "ogMintSupply",
-        "type": "uint256"
-      },
       {
         "internalType": "uint256",
         "name": "preMintSupply",
@@ -742,19 +695,6 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "supply",
-        "type": "uint256"
-      }
-    ],
-    "name": "setOgMintSupply",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address",
         "name": "addr",
         "type": "address"
@@ -884,6 +824,25 @@
         "internalType": "string",
         "name": "",
         "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "tokensOfOwner",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
       }
     ],
     "stateMutability": "view",

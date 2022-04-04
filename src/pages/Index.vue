@@ -129,7 +129,32 @@ async function pressConnect() {
   }
 }
 
+function onValidNetwork() {
+  const state = getState();
+  const n = state.networkName;
+
+  return n === network;
+}
+
+function showNetworkError() {
+  let n = network;
+  if (n === 'homestead') {
+    n = 'mainnet'
+  }
+  $q.notify({
+    message: `Please connect to ${n}!`,
+    color: 'red',
+    position: 'bottom',
+    timeout: 3000
+  })
+}
+
 async function ogMint(amount) {
+  if (!onValidNetwork()) {
+    showNetworkError();
+    return;
+  }
+
   const output = await doOgMint(amount, data.value.ogPrice, 6)
     .catch(err => showError(getUsefulError(err)));
 
@@ -149,6 +174,11 @@ async function ogMint(amount) {
 }
 
 async function preSaleMint(amount) {
+  if (!onValidNetwork()) {
+    showNetworkError();
+    return;
+  }
+
   const output = await doPreSaleMint(amount, data.value.preSalePrice, 5)
     .catch(err => showError(getUsefulError(err)));
 
@@ -168,6 +198,11 @@ async function preSaleMint(amount) {
 }
 
 async function publicSaleMint(amount) {
+  if (!onValidNetwork()) {
+    showNetworkError();
+    return;
+  }
+
   const output = await doMint(amount, data.value.publicSalePrice, 3)
     .catch(err => showError(getUsefulError(err)));
 

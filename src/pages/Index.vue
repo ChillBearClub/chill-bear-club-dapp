@@ -214,9 +214,13 @@ async function updateInterface() {
   const webState = getState();
   const [og, whitelist, normal] = await getSalesStatus();
   const whitelistText = 'OG and Presale minting live!';
+  const whitelistTextOG = 'OG minting live!';
+  const whitelistTextPresale = 'Presale minting live!';
   const mintText = 'Public minting live!';
   const noneText = 'Minting not started';
-  connectionStateArray.value[1].status = `Current status: ${whitelist || og ? whitelistText : normal ? mintText : noneText}`;
+  connectionStateArray.value[1].status = `Current status: ${
+    whitelist && og ? whitelistText : og ? whitelistTextOG : whitelist ? whitelistTextPresale : normal ? mintText : noneText
+  }`;
 
   const mintInfo = await getMintingInfo();
 
@@ -236,16 +240,16 @@ async function updateInterface() {
   if (!normal) {
     // mintRemainder.value = 5 - data.value.preMintSupply;
 
-    if (addressStatus[0] || addressStatus[1]) {
-      isOg.value = addressStatus[0];
-      isPremint.value = !addressStatus[0] && addressStatus[1];
+    if ((addressStatus[0] || addressStatus[1])) {
+      isOg.value = addressStatus[0] && og;
+      isPremint.value = !addressStatus[0] && addressStatus[1] && whitelist;
 
       mintPrice.value =
         addressStatus[0] ? data.value.ogPrice :
           addressStatus[1] ? data.value.preSalePrice :
             0;
 
-      invalidUser.value = false;
+      invalidUser.value = !isOg.value && !isPremint.value;
     } else {
       invalidUser.value = true;
     }

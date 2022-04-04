@@ -9,7 +9,7 @@ import {keys} from "./keys";
 import { getState } from "src/scripts/web3modal";
 
 const ogWhitelist = {
-  // "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266": "0xe486d8750a6824572d312cc9f1b4eeb05983d2d6eff4ff7a43e9d593ed3b6e5f1e451ccfad03efcf7e53c671bdee32399860ad1314ef2b6ccf6e72936b46f0021b"
+  "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266": "0xe486d8750a6824572d312cc9f1b4eeb05983d2d6eff4ff7a43e9d593ed3b6e5f1e451ccfad03efcf7e53c671bdee32399860ad1314ef2b6ccf6e72936b46f0021b"
 }
 
 const mintWhitelist = {

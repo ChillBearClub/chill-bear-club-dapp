@@ -304,7 +304,13 @@ async function updateInterface() {
   isPremint.value = whitelist;
 
   const balance = await getBalance(webState.address);
-  mintCompleted.value = (og && balance >= 2) || (!og && balance >= 1);
+  let cannotMint = balance >= 1;
+
+  if (og && balance < 2) {
+    cannotMint = false;
+  }
+
+  mintCompleted.value = !cannotMint;
   canUseOg2.value = og && Number.parseInt(balance.toString()) === 0;
 
   data.value.preMintSupply = Number.parseInt(mintInfo.preMintSupply);

@@ -44,7 +44,7 @@
         <q-btn v-if="connectionState === 0 || connectionState === 2" class="connect-btn" size="large" @click="pressConnect">{{connectionStateArray[connectionState].text}}</q-btn>
         <div v-if="!invalidUser && userOg" class="flex row flex-center" style="gap: 24px">
           <q-btn class="connect-btn" size="large" @click="ogMint(1)">Og - Mint 1 Token</q-btn>
-          <q-btn class="connect-btn" size="large" @click="ogMint(2)">Og - Mint 2 Tokens</q-btn>
+          <q-btn v-if="canUseOg2" class="connect-btn" size="large" @click="ogMint(2)">Og - Mint 2 Tokens</q-btn>
         </div>
         <div v-if="!invalidUser && userPremint" class="flex row flex-center">
           <q-btn class="connect-btn" size="large" @click="preSaleMint(1)">Presale - Mint 1 Token</q-btn>
@@ -100,6 +100,7 @@ const isPublicMint = ref(false);
 const userOg = ref(false);
 const userPremint = ref(false);
 const mintCompleted = ref(false);
+const canUseOg2 = ref(false);
 const data = ref({
   ogMintSupply: 0,
   preMintSupply: 0,
@@ -302,8 +303,11 @@ async function updateInterface() {
   isOg.value = og;
   isPremint.value = whitelist;
 
+  console.log(webState.address)
+
   const balance = await getBalance(webState.address);
   mintCompleted.value = og && balance >= 2 || balance > 1;
+  canUseOg2.value = og && Number.parseInt(balance.toString()) === 0;
 
   data.value.preMintSupply = Number.parseInt(mintInfo.preMintSupply);
   data.value.publicSaleSupply = Number.parseInt(mintInfo.publicSaleSupply);

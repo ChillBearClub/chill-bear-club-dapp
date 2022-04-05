@@ -2,8 +2,8 @@ import { store } from "quasar/wrappers";
 import { createStore } from "vuex";
 
 // import example from './module-example'
-import web3module from './web3-module';
-import {startupPlugin} from "./web3-module/startup";
+import web3module from "./web3-module";
+import { startupPlugin } from "./web3-module/startup";
 
 /*
  * If not building with SSR mode, you can
@@ -17,11 +17,9 @@ import {startupPlugin} from "./web3-module/startup";
 export default store(function (/* { ssrContext } */) {
   const Store = createStore({
     modules: {
-      web3module
+      web3module,
     },
-    plugins: [
-      startupPlugin
-    ],
+    plugins: [startupPlugin],
 
     // enable strict mode (adds overhead!)
     // for dev mode and --debug builds only

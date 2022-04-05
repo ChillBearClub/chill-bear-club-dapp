@@ -52,7 +52,7 @@ export async function inWhitelist(address) {
 
     function validateOutput() {
       if (ranOg && ranWl) {
-        resolve([ogSig !== null, wlSig !== null])
+        resolve([ogSig !== null, wlSig !== null]);
       }
     }
   });

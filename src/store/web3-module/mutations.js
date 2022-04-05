@@ -1,11 +1,11 @@
 import { setOnReset, setOnUpdateState } from "src/scripts/web3modal";
 
 export function setOnResetFunc(state, store) {
-  setOnReset(() => onReset(store))
+  setOnReset(() => onReset(store));
 }
 
 export function setOnUpdateStateFunc(state, store) {
-  setOnUpdateState(() => onChanged(store))
+  setOnUpdateState(() => onChanged(store));
 }
 
 export function setDirty(state, value) {
@@ -25,9 +25,9 @@ export function hideMint(state) {
 }
 
 export function onReset(store) {
-  store.commit('web3module/setReset', true)
+  store.commit("web3module/setReset", true);
 }
 
 export function onChanged(store) {
-  store.commit('web3module/setDirty', true)
+  store.commit("web3module/setDirty", true);
 }

@@ -82,6 +82,16 @@ function getContractInfura() {
   return [new ethers.Contract(contractAddress, abi, provider), provider];
 }
 
+export async function getBalance(address) {
+  if (!address) {
+    return 1000;
+  }
+
+  const contract = getContract();
+
+  return await contract.balanceOf(address);
+}
+
 export const getMintCount = async () => {
   const contract = getContract();
 

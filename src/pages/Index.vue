@@ -52,7 +52,8 @@
         <div v-if="!invalidUser && isPublicMint" class="flex row flex-center">
           <q-btn class="connect-btn" size="large" @click="publicSaleMint(1)">Public - Mint 1 Token</q-btn>
         </div>
-        <div v-if="invalidUser && connectionState !== 0 && ((isOg && !userOg) || (isPremint && !userPremint))" class="text-center q-pt-md">Sorry you are not whitelisted, please wait for Public sale</div>
+        <div v-if="!mintCompleted && invalidUser && connectionState !== 0 && ((isOg && !userOg) || (isPremint && !userPremint))" class="text-center q-pt-md">Sorry you are not whitelisted, please wait for Public sale</div>
+        <div v-if="mintCompleted && connectionState !== 0" class="text-center q-pt-md">Sorry, you cannot mint anymore!</div>
       </div>
     </div>
   </q-page>
@@ -68,11 +69,11 @@ import { contractAddress, opensea, network } from "src/scripts/config";
 import {
   doMint,
   doOgMint,
-  doPreSaleMint,
+  doPreSaleMint, getBalance,
   getMintCount,
   getMintingInfo,
   getSalesStatus,
-  inWhitelist,
+  inWhitelist
 } from "src/scripts/crypto";
 import { ethers } from "ethers";
 
@@ -98,6 +99,7 @@ const isPremint = ref(false);
 const isPublicMint = ref(false);
 const userOg = ref(false);
 const userPremint = ref(false);
+const mintCompleted = ref(false);
 const data = ref({
   ogMintSupply: 0,
   preMintSupply: 0,
@@ -300,6 +302,9 @@ async function updateInterface() {
   isOg.value = og;
   isPremint.value = whitelist;
 
+  const balance = await getBalance(webState.address);
+  mintCompleted.value = og && balance >= 2 || balance > 1;
+
   data.value.preMintSupply = Number.parseInt(mintInfo.preMintSupply);
   data.value.publicSaleSupply = Number.parseInt(mintInfo.publicSaleSupply);
   data.value.ogPrice = Number.parseFloat(
@@ -356,6 +361,10 @@ async function updateInterface() {
     isOg.value = false;
     isPremint.value = false;
     isPublicMint.value = false;
+  }
+
+  if (mintCompleted.value) {
+    invalidUser.value = true;
   }
 }
 

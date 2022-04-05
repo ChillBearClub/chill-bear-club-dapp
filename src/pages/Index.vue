@@ -306,7 +306,7 @@ async function updateInterface() {
   console.log(webState.address)
 
   const balance = await getBalance(webState.address);
-  mintCompleted.value = (og && balance >= 2) || balance > 1;
+  mintCompleted.value = (og && balance >= 2) || balance >= 1;
   canUseOg2.value = og && Number.parseInt(balance.toString()) === 0;
 
   data.value.preMintSupply = Number.parseInt(mintInfo.preMintSupply);

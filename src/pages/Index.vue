@@ -35,17 +35,17 @@
       <div v-else class="flex flex-center column">
         <div class="text-center q-pt-sm bear-font text-weight-bolder" style="font-size: 2.5rem">{{connectionStateArray[connectionState].status}}</div>
         <q-btn v-if="connectionState === 0 || connectionState === 2" class="connect-btn" size="large" @click="pressConnect">{{connectionStateArray[connectionState].text}}</q-btn>
-        <div v-if="!invalidUser && isOg" class="flex row flex-center" style="gap: 24px">
-          <q-btn class="connect-btn" size="large" @click="ogMint(1)">Og Mint 1</q-btn>
-          <q-btn class="connect-btn" size="large" @click="ogMint(2)">Og Mint 2</q-btn>
+        <div v-if="!invalidUser && userOg" class="flex row flex-center" style="gap: 24px">
+          <q-btn class="connect-btn" size="large" @click="ogMint(1)">Og - Mint 1 Token</q-btn>
+          <q-btn class="connect-btn" size="large" @click="ogMint(2)">Og - Mint 2 Tokens</q-btn>
         </div>
-        <div v-if="!invalidUser && isPremint" class="flex row flex-center">
-          <q-btn class="connect-btn" size="large" @click="preSaleMint(1)">Presale Mint 1</q-btn>
+        <div v-if="!invalidUser && userPremint" class="flex row flex-center">
+          <q-btn class="connect-btn" size="large" @click="preSaleMint(1)">Presale - Mint 1 Token</q-btn>
         </div>
         <div v-if="!invalidUser && isPublicMint" class="flex row flex-center">
-          <q-btn class="connect-btn" size="large" @click="publicSaleMint(1)">Public Mint 1</q-btn>
+          <q-btn class="connect-btn" size="large" @click="publicSaleMint(1)">Public - Mint 1 Token</q-btn>
         </div>
-        <div v-if="invalidUser && connectionState !== 0 && (isOg || isPremint)" class="text-center q-pt-md">Sorry you are not whitelisted, please wait for Public sale</div>
+        <div v-if="invalidUser && connectionState !== 0 && (userOg || userPremint)" class="text-center q-pt-md">Sorry you are not whitelisted, please wait for Public sale</div>
       </div>
     </div>
   </q-page>
@@ -88,6 +88,8 @@ const isLoading = ref(true);
 const isOg = ref(false);
 const isPremint = ref(false);
 const isPublicMint = ref(false);
+const userOg = ref(false);
+const userPremint = ref(false);
 const data = ref({
   ogMintSupply: 0,
   preMintSupply: 0,
@@ -131,18 +133,27 @@ async function pressConnect() {
 
 function onValidNetwork() {
   const state = getState();
-  const n = state.networkName;
+  let n = state.networkName;
+
+  if (n === 'unknown') {
+    n = 'localhost'
+  }
 
   return n === network;
 }
 
 function showNetworkError() {
+  const state = getState();
+
   let n = network;
   if (n === 'homestead') {
     n = 'mainnet'
   }
+  if (n === 'unknown') {
+    n = 'localhost'
+  }
   $q.notify({
-    message: `Please connect to ${n}!`,
+    message: `Please connect to ${n} instead of ${state.networkName}!`,
     color: 'red',
     position: 'bottom',
     timeout: 3000
@@ -155,7 +166,7 @@ async function ogMint(amount) {
     return;
   }
 
-  const output = await doOgMint(amount, data.value.ogPrice, 6)
+  const output = await doOgMint(amount, data.value.ogPrice, 2)
     .catch(err => showError(getUsefulError(err)));
 
   if (!output) {
@@ -260,6 +271,8 @@ async function updateInterface() {
   const mintInfo = await getMintingInfo();
 
   isPublicMint.value = normal;
+  isOg.value = og;
+  isPremint.value = whitelist;
 
   data.value.preMintSupply = Number.parseInt(mintInfo.preMintSupply);
   data.value.publicSaleSupply = Number.parseInt(mintInfo.publicSaleSupply);
@@ -276,15 +289,22 @@ async function updateInterface() {
     // mintRemainder.value = 5 - data.value.preMintSupply;
 
     if ((addressStatus[0] || addressStatus[1])) {
-      isOg.value = addressStatus[0] && og;
-      isPremint.value = !addressStatus[0] && addressStatus[1] && whitelist;
+      const isOg = addressStatus[0] && og;
+      const isPremint = !addressStatus[0] && addressStatus[1] && whitelist;
 
       mintPrice.value =
         addressStatus[0] ? data.value.ogPrice :
           addressStatus[1] ? data.value.preSalePrice :
             0;
 
-      invalidUser.value = !isOg.value && !isPremint.value;
+      userOg.value = og && isOg;
+      userPremint.value = whitelist && isPremint;
+
+      if (userOg.value) {
+        userPremint.value = false;
+      }
+
+      invalidUser.value = !(userOg.value || userPremint.value)
     } else {
       invalidUser.value = true;
     }
@@ -320,7 +340,8 @@ function showError(err) {
     position: 'bottom-right',
     actions: [
       { label: 'Ok', color: 'white', handler: () => { /* ... */ } }
-    ]
+    ],
+    timeout: 30 * 1000
   })
 }
 </script>

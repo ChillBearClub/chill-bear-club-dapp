@@ -100,16 +100,39 @@ export async function getMintingInfo() {
   return await contract.getMintingInfo();
 }
 
-export function getSignature(address, state) {
+export async function getSignature(address, state) {
   if (!address) {
     return undefined;
   }
 
-  return state[0]
-    ? ogWhitelist[address]
-    : state[1]
-    ? mintWhitelist[address]
-    : undefined;
+  return await new Promise((resolve, reject) => {
+    const OGRef = ref(db, "OGlist/" + address + "/");
+    const WLRef = ref(db, "Whitelist/" + address + "/");
+
+    let ranOg = false;
+    let ranWl = false;
+
+    let ogSig;
+    let wlSig;
+
+    onValue(OGRef, (snapshot) => {
+      ogSig = snapshot.val();
+      ranOg = true;
+      validateOutput();
+    });
+
+    onValue(WLRef, (snapshot) => {
+      wlSig = snapshot.val();
+      ranWl = true;
+      validateOutput();
+    });
+
+    function validateOutput() {
+      if (ranOg && ranWl) {
+        resolve(state[0] ? ogSig : state[1] ? wlSig : undefined);
+      }
+    }
+  });
 }
 
 export async function doOgMint(amount, cost, digits) {
@@ -127,6 +150,7 @@ export async function doOgMint(amount, cost, digits) {
   const wei = ethers.utils.parseEther(
     (cost * amount).toFixed(digits).toString()
   );
+
   const tx = {
     value: wei,
     nonce: (await provider.getTransactionCount(address)) || undefined,
@@ -138,7 +162,9 @@ export async function doOgMint(amount, cost, digits) {
     throw new Error("You are not in the OG whitelist!");
   }
 
-  return contract[`ogMint${amount}`](getSignature(address, [true, false]), tx);
+  return contract.ogMint(await getSignature(address, [true, false]), amount, tx)
+
+  // return contract[`ogMint${amount}`](await getSignature(address, [true, false]), tx);
 }
 
 export async function doPreSaleMint(amount, cost, digits) {
@@ -167,7 +193,7 @@ export async function doPreSaleMint(amount, cost, digits) {
     throw new Error("You are not in the presale whitelist!");
   }
 
-  return contract.preMint(getSignature(address, [false, true]), tx);
+  return contract.preMint(await getSignature(address, [false, true]), tx);
 }
 
 export async function doMint(amount, cost, digits) {

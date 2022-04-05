@@ -470,22 +470,14 @@
         "internalType": "bytes",
         "name": "sig",
         "type": "bytes"
-      }
-    ],
-    "name": "ogMint1",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
+      },
       {
-        "internalType": "bytes",
-        "name": "sig",
-        "type": "bytes"
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
       }
     ],
-    "name": "ogMint2",
+    "name": "ogMint",
     "outputs": [],
     "stateMutability": "payable",
     "type": "function"

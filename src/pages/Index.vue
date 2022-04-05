@@ -52,7 +52,7 @@
         <div v-if="!invalidUser && isPublicMint" class="flex row flex-center">
           <q-btn class="connect-btn" size="large" @click="publicSaleMint(1)">Public - Mint 1 Token</q-btn>
         </div>
-        <div v-if="invalidUser && connectionState !== 0 && (userOg || userPremint)" class="text-center q-pt-md">Sorry you are not whitelisted, please wait for Public sale</div>
+        <div v-if="invalidUser && connectionState !== 0 && ((isOg && !userOg) || (isPremint && !userPremint))" class="text-center q-pt-md">Sorry you are not whitelisted, please wait for Public sale</div>
       </div>
     </div>
   </q-page>

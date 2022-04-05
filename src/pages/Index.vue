@@ -303,16 +303,6 @@ async function updateInterface() {
   isOg.value = og;
   isPremint.value = whitelist;
 
-  const balance = await getBalance(webState.address);
-  let cannotMint = balance >= 1;
-
-  if (og && balance < 2) {
-    cannotMint = false;
-  }
-
-  mintCompleted.value = !cannotMint;
-  canUseOg2.value = og && Number.parseInt(balance.toString()) === 0;
-
   data.value.preMintSupply = Number.parseInt(mintInfo.preMintSupply);
   data.value.publicSaleSupply = Number.parseInt(mintInfo.publicSaleSupply);
   data.value.ogPrice = Number.parseFloat(
@@ -363,6 +353,17 @@ async function updateInterface() {
     mintPrice.value = data.value.publicSalePrice;
     invalidUser.value = false;
   }
+
+  const balance = await getBalance(webState.address);
+  const balanceNumber = Number.parseInt(balance.toString());
+  let cannotMint = balanceNumber >= 1;
+
+  if (og && userOg.value && balanceNumber < 2) {
+    cannotMint = false;
+  }
+
+  mintCompleted.value = cannotMint;
+  canUseOg2.value = og && balanceNumber === 0;
 
   if (mintTotal.value === mintRemainder.value) {
     connectionState.value = 2;

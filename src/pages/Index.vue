@@ -40,20 +40,9 @@
         <q-inner-loading style="position: relative; background: none" showing />
       </div>
       <div v-else class="flex flex-center column">
-        <div class="text-center q-pt-sm bear-font text-weight-bolder" style="font-size: 2.5rem">{{connectionStateArray[connectionState].status}}</div>
-        <q-btn v-if="connectionState === 0 || connectionState === 2" class="connect-btn" size="large" @click="pressConnect">{{connectionStateArray[connectionState].text}}</q-btn>
-        <div v-if="!invalidUser && userOg" class="flex row flex-center" style="gap: 24px">
-          <q-btn class="connect-btn" size="large" @click="ogMint(1)">Og - Mint 1 Token</q-btn>
-          <q-btn v-if="canUseOg2" class="connect-btn" size="large" @click="ogMint(2)">Og - Mint 2 Tokens</q-btn>
+        <div class="text-center q-pt-md" style="font-size: 25px">
+          Chill bears club has sold out!
         </div>
-        <div v-if="!invalidUser && userPremint" class="flex row flex-center">
-          <q-btn class="connect-btn" size="large" @click="preSaleMint(1)">Presale - Mint 1 Token</q-btn>
-        </div>
-        <div v-if="!invalidUser && isPublicMint" class="flex row flex-center">
-          <q-btn class="connect-btn" size="large" @click="publicSaleMint(1)">Public - Mint 1 Token</q-btn>
-        </div>
-        <div v-if="!mintCompleted && invalidUser && connectionState !== 0 && ((isOg && !userOg) || (isPremint && !userPremint))" class="text-center q-pt-md">Sorry you are not whitelisted, please wait for Public sale</div>
-        <div v-if="mintCompleted && connectionState !== 0" class="text-center q-pt-md">Sorry, you cannot mint anymore!</div>
       </div>
     </div>
   </q-page>
@@ -69,11 +58,12 @@ import { contractAddress, opensea, network } from "src/scripts/config";
 import {
   doMint,
   doOgMint,
-  doPreSaleMint, getBalance,
+  doPreSaleMint,
+  getBalance,
   getMintCount,
   getMintingInfo,
   getSalesStatus,
-  inWhitelist
+  inWhitelist,
 } from "src/scripts/crypto";
 import { ethers } from "ethers";
 
@@ -151,8 +141,8 @@ function onValidNetwork() {
   const state = getState();
   let n = state.networkName;
 
-  if (n === 'unknown') {
-    n = 'localhost'
+  if (n === "unknown") {
+    n = "localhost";
   }
 
   return n === network;
@@ -165,15 +155,15 @@ function showNetworkError() {
   if (n === "homestead") {
     n = "mainnet";
   }
-  if (n === 'unknown') {
-    n = 'localhost'
+  if (n === "unknown") {
+    n = "localhost";
   }
   $q.notify({
     message: `Please connect to ${n} instead of ${state.networkName}!`,
-    color: 'red',
-    position: 'bottom',
-    timeout: 3000
-  })
+    color: "red",
+    position: "bottom",
+    timeout: 3000,
+  });
 }
 
 async function ogMint(amount) {
@@ -182,8 +172,9 @@ async function ogMint(amount) {
     return;
   }
 
-  const output = await doOgMint(amount, data.value.ogPrice, 2)
-    .catch(err => showError(getUsefulError(err)));
+  const output = await doOgMint(amount, data.value.ogPrice, 2).catch((err) =>
+    showError(getUsefulError(err))
+  );
 
   if (!output) {
     return;
@@ -328,7 +319,7 @@ async function updateInterface() {
   if (!normal) {
     // mintRemainder.value = 5 - data.value.preMintSupply;
 
-    if ((addressStatus[0] || addressStatus[1])) {
+    if (addressStatus[0] || addressStatus[1]) {
       const isOg = addressStatus[0] && og;
       const isPremint = !addressStatus[0] && addressStatus[1] && whitelist;
 
@@ -345,7 +336,7 @@ async function updateInterface() {
         userPremint.value = false;
       }
 
-      invalidUser.value = !(userOg.value || userPremint.value)
+      invalidUser.value = !(userOg.value || userPremint.value);
     } else {
       invalidUser.value = true;
     }
@@ -401,10 +392,16 @@ function showError(err) {
     color: "red",
     position: "bottom-right",
     actions: [
-      { label: 'Ok', color: 'white', handler: () => { /* ... */ } }
+      {
+        label: "Ok",
+        color: "white",
+        handler: () => {
+          /* ... */
+        },
+      },
     ],
-    timeout: 30 * 1000
-  })
+    timeout: 30 * 1000,
+  });
 }
 </script>
 

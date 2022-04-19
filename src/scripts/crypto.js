@@ -23,40 +23,6 @@ const db = getDatabase();
 /*
   Whitelist stuff is handled here. Swap to use a database instead of json.
  */
-export async function inWhitelist(address) {
-  if (!address) {
-    return [false, false];
-  }
-
-  return await new Promise((resolve, reject) => {
-    const OGRef = ref(db, "OGlist/" + address + "/");
-    const WLRef = ref(db, "Whitelist/" + address + "/");
-
-    let ranOg = false;
-    let ranWl = false;
-
-    let ogSig;
-    let wlSig;
-
-    onValue(OGRef, (snapshot) => {
-      ogSig = snapshot.val();
-      ranOg = true;
-      validateOutput();
-    });
-
-    onValue(WLRef, (snapshot) => {
-      wlSig = snapshot.val();
-      ranWl = true;
-      validateOutput();
-    });
-
-    function validateOutput() {
-      if (ranOg && ranWl) {
-        resolve([ogSig !== null, wlSig !== null]);
-      }
-    }
-  });
-}
 
 // eslint-disable-next-line no-unused-vars
 export function getContract() {
@@ -71,7 +37,12 @@ export function getContract() {
 
 function getContractJson() {
   const provider = new ethers.providers.JsonRpcProvider();
-  return new ethers.Contract(contractAddress, abi, provider);
+  return new ethers.Contract(
+    contractAddressStake,
+    contractAddressHoney,
+    abi,
+    provider
+  );
 }
 
 function getContractInfura() {
@@ -172,7 +143,11 @@ export async function doOgMint(amount, cost, digits) {
     throw new Error("You are not in the OG whitelist!");
   }
 
-  return contract.ogMint(await getSignature(address, [true, false]), amount, tx)
+  return contract.ogMint(
+    await getSignature(address, [true, false]),
+    amount,
+    tx
+  );
 
   // return contract[`ogMint${amount}`](await getSignature(address, [true, false]), tx);
 }

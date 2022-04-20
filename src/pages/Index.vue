@@ -100,8 +100,8 @@ const connectionState = ref(0);
 const invalidUser = ref(false);
 const isLoading = ref(true);
 const data = ref({});
-const canStakeCount = ref(0);
-const totalStakedCount = ref(0);
+const canStakeCount = ref('-');
+const totalStakedCount = ref('-');
 
 const informationClasses = computed(() => {
   const isMobile = $q.screen.lt.md;

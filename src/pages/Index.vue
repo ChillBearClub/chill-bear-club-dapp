@@ -18,13 +18,18 @@
               Staked Count
             </div>
             <div class="text-center">
-              {{ StakedTokens }}
+              {{ totalStakedCount }}
             </div>
           </div>
           <div class="flex flex-center col-4 column">
-            <div class="text-center q-pb-md title text-weight-bolder"></div>
-            <div class="text-center">{{ mintPrice }} ETH</div>
+            <div class="text-center q-pb-md title text-weight-bolder">
+              Token Count
+            </div>
+            <div class="text-center">
+              {{ canStakeCount }}
+            </div>
           </div>
+          <q-space />
           <div class="flex flex-center col-4 column">
             <div class="text-center q-pb-md title text-weight-bolder">
               Wallet
@@ -32,6 +37,9 @@
             <div class="text-center">
               {{ connectionStateArray[connectionState].wallet }}
             </div>
+          </div>
+          <div class="full-width text-center q-pt-lg" style="font-size: 16px">
+            <em>Every 24 hours = 5 $Hunny per Chill Bear</em>
           </div>
         </div>
       </div>
@@ -42,8 +50,7 @@
       <div v-else class="flex flex-center column">
         <div
           class="text-center q-pt-sm bear-font text-weight-bolder"
-          style="font-size: 2.5rem"
-        >
+          style="font-size: 2.5rem">
           {{ connectionStateArray[connectionState].status }}
         </div>
         <q-btn
@@ -51,18 +58,13 @@
           class="connect-btn"
           size="large"
           @click="pressConnect"
-          >{{ connectionStateArray[connectionState].text }}</q-btn
-        >
+          >{{ connectionStateArray[connectionState].text }}</q-btn>
 
-        <div v-if="connectionState === 1" class="flex row flex-center">
-          <q-btn class="connect-btn" size="large" @click="stakeAll()">
-            Stake All</q-btn
-          >
+        <div v-if="connectionState === 1 && canStakeCount > 0" class="flex row flex-center">
+          <q-btn class="connect-btn" size="large" @click="doStake()">Stake All</q-btn>
         </div>
-        <div v-if="StakedTokens >= 1" class="flex row flex-center">
-          <q-btn class="connect-btn" size="large" @click="unStakeAll()">
-            Unstake All</q-btn
-          >
+        <div v-if="totalStakedCount >= 1" class="flex row flex-center q-mt-md">
+          <q-btn class="connect-btn" size="large" @click="doUnstake()">Unstake All</q-btn>
         </div>
       </div>
     </div>
@@ -76,23 +78,13 @@ import { useStore } from "vuex";
 import { getState, signIn } from "src/scripts/web3modal";
 import { getUsefulError, trimAddress } from "src/scripts/util";
 import {
-  contractAddressCBC,
-  contractAddressStake,
-  contractAddressHoney,
   opensea,
   network,
 } from "src/scripts/config";
 import {
-  getContract,
-  getStaked,
-  getStakedCBC,
-  getStakeable,
-  getContractCBC,
-  getContractHoney,
+  getCBCStaked, isStakingLive, tokensOfOwner, stakeByIds, unstakeAll, getBlockStaked, getStakedCount
 } from "src/scripts/crypto";
-import { ethers } from "ethers";
 
-const stakingLive = ref(false);
 const $q = useQuasar();
 const store = useStore();
 const connectionStateArray = ref([
@@ -101,15 +93,15 @@ const connectionStateArray = ref([
     wallet: "Please connect",
     status: "Connect wallet to begin",
   },
-  { text: "Mint", wallet: "", status: "Current status: -" },
-  { text: "Buy on OpenSea", wallet: "", status: "Current status: Sold out!" },
+  { text: "Mint", wallet: "", status: "" },
+  { text: "Buy on OpenSea", wallet: "", status: "" },
 ]);
-const stakeableCount = ref(0);
-const StakedTokens = ref(0);
 const connectionState = ref(0);
 const invalidUser = ref(false);
 const isLoading = ref(true);
 const data = ref({});
+const canStakeCount = ref(0);
+const totalStakedCount = ref(0);
 
 const informationClasses = computed(() => {
   const isMobile = $q.screen.lt.md;
@@ -178,31 +170,85 @@ function showNetworkError() {
   });
 }
 
-async function stakeAll() {
-  if (stakingLive.value === true) {
-    const cbcOwned = await getStakedCBC();
-    console.log(cbcOwned.value);
-    const contract = getContract();
+async function doStake() {
+  if (!onValidNetwork()) {
+    showNetworkError();
+    return;
+  }
 
-    await contract.stakeByIds(cbcOwned);
+  try {
+    if (await isStakingLive()) {
+      const webState = getState();
+      const availableTokens = await tokensOfOwner(webState.address).catch((err) => {
+        showError(getUsefulError(err))
+      })
 
-    showSuccess(` 👍`, 3000);
-    await updateInterface();
-  } else {
-    //  throw new Error("Staking Is Not Live!");
+      if (!availableTokens) {
+        throw new Error("Staking was not successful");
+      }
+
+      const func = await stakeByIds(availableTokens).catch((err) => {
+        showError(getUsefulError(err))
+      });
+
+      if (!func) {
+        throw new Error("Staking was not successful");
+      }
+
+      const tx = await func.wait().catch((err) =>  showError(getUsefulError(err)));
+
+      if (!tx) {
+        throw new Error("Staking was not successful");
+      }
+
+      showSuccess(`Successfully staked ${availableTokens.length} tokens! 👍`, 3000);
+      await updateInterface();
+    } else {
+      throw new Error("Staking Is Not Live!");
+    }
+  } catch(e) {
+    showError(getUsefulError(e))
   }
 }
 
-async function unStakeAll(amount) {
-  if (StakedTokens.value >= 1) {
-    const contract = getContract();
+async function doUnstake() {
+  if (!onValidNetwork()) {
+    showNetworkError();
+    return;
+  }
 
-    await contract.unstakeAll();
+  try {
+    if (totalStakedCount.value >= 1) {
+      const webState = getState();
+      const stakeArray = await getCBCStaked(webState.address).catch((err) => {
+        showError(getUsefulError(err))
+      })
 
-    showSuccess(`Successfully minted ${amount} tokens! 👍`, 3000);
-    await updateInterface();
-  } else {
-    throw new Error("No Tokens to Unstake!");
+      if (!stakeArray) {
+        throw new Error("Unstaking was not successful");
+      }
+
+      const func = await unstakeAll(stakeArray).catch((err) => {
+        showError(getUsefulError(err))
+      });
+
+      if (!func) {
+        throw new Error("Unstaking was not successful");
+      }
+
+      const tx = await func.wait().catch((err) => showError(getUsefulError(err)));
+
+      if (!tx) {
+        throw new Error("Unstaking was not successful");
+      }
+
+      showSuccess(`Successfully unstaked ${stakeArray.length} tokens! 👍`, 3000);
+      await updateInterface();
+    } else {
+      throw new Error("No Tokens to Unstake!");
+    }
+  } catch(e) {
+    showError(getUsefulError(e))
   }
 }
 
@@ -271,23 +317,24 @@ function showError(err) {
   });
 }
 
-async function isStakingLive() {
-  const contract = getContract();
-
-  return await contract.stakingLive();
-}
-
 async function updateInterface() {
   const webState = getState();
-  stakeableCount.value = await getStakeable(webState.address).catch((err) =>
+  const availableTokens = await tokensOfOwner(webState.address).catch((err) => {
     showError(getUsefulError(err))
-  );
+  })
+  const stakeAmount = await getStakedCount(webState.address).catch((err) => {
+    showError(getUsefulError(err))
+  })
 
-  const stakecount = await getStaked(webState.address).catch((err) =>
-    showError(getUsefulError(err))
-  );
-  StakedTokens.value = Number.parseInt(stakecount.toString());
-  stakingLive.value = await isStakingLive();
+  if (!stakeAmount || !availableTokens) {
+    canStakeCount.value = 0;
+    totalStakedCount.value = 0;
+    return;
+  }
+
+  const stakedAmountInt = Number.parseInt(stakeAmount.toString());
+  canStakeCount.value = availableTokens.length - stakedAmountInt;
+  totalStakedCount.value = stakedAmountInt;
 }
 </script>
 

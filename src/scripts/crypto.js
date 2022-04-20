@@ -1,13 +1,14 @@
 import { ethers } from "ethers";
 import {
-  contractAddressCBC,
+  contractAddress,
   contractAddressStake,
   contractAddressHoney,
   network,
   gasLimit,
 } from "./config.json";
 import abi from "./abi.json";
-import abiCBC from "./abiCBC.json";
+import abiHoney from "./abi-honey.json";
+import abiStake from "./abi-stake.json";
 import { keys } from "./keys";
 import { getState } from "src/scripts/web3modal";
 import { initializeApp } from "firebase/app";
@@ -27,250 +28,122 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase();
 
-/*
-  Whitelist stuff is handled here. Swap to use a database instead of json.
- */
-
 // eslint-disable-next-line no-unused-vars
-export function getContract() {
+export function getContract(address, abi) {
   switch (network) {
     case "rinkeby":
     case "homestead":
-      return getContractInfura()[0];
+      return getContractInfura(address, abi)[0];
     default:
-      return getContractJson();
+      return getContractJson(address, abi);
   }
 }
 
-function getContractJson() {
+function getContractJson(address, abi) {
   const provider = new ethers.providers.JsonRpcProvider();
-  return new ethers.Contract(contractAddressStake, abi, provider);
+  return new ethers.Contract(address, abi, provider);
 }
 
-function getContractInfura() {
+function getContractInfura(address, abi) {
   const provider = new ethers.providers.InfuraProvider(
     network,
     keys.INFURA_KEY
   );
 
-  return [new ethers.Contract(contractAddressStake, abi, provider), provider];
+  return [new ethers.Contract(address, abi, provider), provider];
 }
 
-export function getContractCBC() {
-  switch (network) {
-    case "rinkeby":
-    case "homestead":
-      return getContractInfuraCBC()[0];
-    default:
-      return getContractJsonCBC();
-  }
+// Stake contract
+
+export async function getCBCStaked(address) {
+  const contractCBC = getContract(contractAddressStake, abiStake);
+
+  return await contractCBC.getCBCStaked(address);
 }
 
-function getContractJsonCBC() {
-  const provider = new ethers.providers.JsonRpcProvider();
-  return new ethers.Contract(contractAddressCBC, abiCBC, provider);
+export async function getStakedCount(address) {
+  const contractCBC = getContract(contractAddressStake, abiStake);
+
+  return await contractCBC.getStakedCount(address);
 }
 
-function getContractInfuraCBC() {
-  const provider = new ethers.providers.InfuraProvider(
-    network,
-    keys.INFURA_KEY
-  );
+export async function isStakingLive() {
+  const contractCBC = getContract(contractAddressStake, abiStake);
 
-  return [new ethers.Contract(contractAddressCBC, abiCBC, provider), provider];
+  return await contractCBC.stakingLive();
 }
 
-export function getContractHoney() {
-  switch (network) {
-    case "rinkeby":
-    case "homestead":
-      return getContractInfuraHoney()[0];
-    default:
-      return getContractJsonHoney();
-  }
-}
-
-function getContractJsonHoney() {
-  const provider = new ethers.providers.JsonRpcProvider();
-  return new ethers.Contract(contractAddressHoney, abi, provider);
-}
-
-function getContractInfuraHoney() {
-  const provider = new ethers.providers.InfuraProvider(
-    network,
-    keys.INFURA_KEY
-  );
-  return [new ethers.Contract(contractAddressHoney, abi, provider), provider];
-}
-
-export async function getStakeable(address) {
-  const webState = getState();
-  const contractCBC = getContractCBC();
-
-  return await contractCBC.tokensOfOwner(webState.address);
-}
-
-export async function getStakedCBC() {
-  const webState = getState();
-  const contractCBC = getContractCBC();
-
-  return await contractCBC.tokensOfOwner(webState.address);
-}
-
-export async function getStaked(address) {
-  const contract = getContract();
-
-  return await contract.getStakedCount(address);
-}
-
-export async function getBalance(address) {
-  if (!address) {
-    return 1000;
-  }
-
-  const contract = getContract();
-
-  return await contract.balanceOf(address);
-}
-
-export const getMintCount = async () => {
-  const contract = getContract();
-
-  return await contract.totalSupply();
-};
-
-export const getSalesStatus = async () => {
-  const contract = getContract();
-
-  return await contract.getSalesStatus();
-};
-
-export async function getMintingInfo() {
-  const contract = getContract();
-
-  return await contract.getMintingInfo();
-}
-
-export async function getSignature(address, state) {
-  if (!address) {
-    return undefined;
-  }
-
-  return await new Promise((resolve, reject) => {
-    const OGRef = ref(db, "OGlist/" + address + "/");
-    const WLRef = ref(db, "Whitelist/" + address + "/");
-
-    let ranOg = false;
-    let ranWl = false;
-
-    let ogSig;
-    let wlSig;
-
-    onValue(OGRef, (snapshot) => {
-      ogSig = snapshot.val();
-      ranOg = true;
-      validateOutput();
-    });
-
-    onValue(WLRef, (snapshot) => {
-      wlSig = snapshot.val();
-      ranWl = true;
-      validateOutput();
-    });
-
-    function validateOutput() {
-      if (ranOg && ranWl) {
-        resolve(state[0] ? ogSig : state[1] ? wlSig : undefined);
-      }
-    }
-  });
-}
-
-export async function doOgMint(amount, cost, digits) {
-  if (amount < 0 || amount > 2) {
-    throw new Error("Invalid amount provided!");
-  }
-
-  // get signer
+export async function stakeByIds(tokens) {
   const provider = getState().provider;
-
   const signer = await provider.getSigner();
   const address = await signer.getAddress();
-  const contract = getContract().connect(signer);
-
-  const wei = ethers.utils.parseEther(
-    (cost * amount).toFixed(digits).toString()
-  );
-
+  const contractCBC = getContract(contractAddressStake, abiStake).connect(signer);
   const tx = {
-    value: wei,
     nonce: (await provider.getTransactionCount(address)) || undefined,
-    gasLimit: gasLimit[network] * amount,
+    gasLimit: gasLimit[network] * tokens.length
   };
 
-  const [og, _] = await inWhitelist(address);
-  if (!og) {
-    throw new Error("You are not in the OG whitelist!");
-  }
-
-  return contract.ogMint(
-    await getSignature(address, [true, false]),
-    amount,
-    tx
-  );
-
-  // return contract[`ogMint${amount}`](await getSignature(address, [true, false]), tx);
+  return await contractCBC.stakeByIds(tokens, tx);
 }
 
-export async function doPreSaleMint(amount, cost, digits) {
-  if (amount !== 1) {
-    throw new Error("Invalid amount provided!");
-  }
-
-  // get signer
+export async function unstakeAll(tokens) {
   const provider = getState().provider;
-
   const signer = await provider.getSigner();
   const address = await signer.getAddress();
-  const contract = getContract().connect(signer);
-
-  const wei = ethers.utils.parseEther(
-    (cost * amount).toFixed(digits).toString()
-  );
+  const contractCBC = getContract(contractAddressStake, abiStake).connect(signer);
   const tx = {
-    value: wei,
     nonce: (await provider.getTransactionCount(address)) || undefined,
-    gasLimit: gasLimit[network] * amount,
+    gasLimit: gasLimit[network] * tokens.length
   };
 
-  const [_, presale] = await inWhitelist(address);
-  if (!presale) {
-    throw new Error("You are not in the presale whitelist!");
-  }
-
-  return contract.preMint(await getSignature(address, [false, true]), tx);
+  return await contractCBC.unstakeAll(tx);
 }
 
-export async function doMint(amount, cost, digits) {
-  if (amount !== 1) {
-    throw new Error("Invalid amount provided!");
-  }
+export async function getBlockStaked(tokenId) {
+  const contractCBC = getContract(contractAddressStake, abiStake);
 
-  // get signer
-  const provider = getState().provider;
-
-  const signer = await provider.getSigner();
-  const address = await signer.getAddress();
-  const contract = getContract().connect(signer);
-
-  const wei = ethers.utils.parseEther(
-    (cost * amount).toFixed(digits).toString()
-  );
-  const tx = {
-    value: wei,
-    nonce: (await provider.getTransactionCount(address)) || undefined,
-    gasLimit: gasLimit[network] * amount,
-  };
-
-  return contract.mint(tx);
+  return await contractCBC.getBlockStaked(tokenId);
 }
+
+// Chill contract
+
+export async function tokensOfOwner(address) {
+  const contract = getContract(contractAddress, abi);
+
+  return await contract.tokensOfOwner(address);
+}
+
+// export async function getSignature(address, state) {
+//   if (!address) {
+//     return undefined;
+//   }
+//
+//   return await new Promise((resolve, reject) => {
+//     const OGRef = ref(db, "OGlist/" + address + "/");
+//     const WLRef = ref(db, "Whitelist/" + address + "/");
+//
+//     let ranOg = false;
+//     let ranWl = false;
+//
+//     let ogSig;
+//     let wlSig;
+//
+//     onValue(OGRef, (snapshot) => {
+//       ogSig = snapshot.val();
+//       ranOg = true;
+//       validateOutput();
+//     });
+//
+//     onValue(WLRef, (snapshot) => {
+//       wlSig = snapshot.val();
+//       ranWl = true;
+//       validateOutput();
+//     });
+//
+//     function validateOutput() {
+//       if (ranOg && ranWl) {
+//         resolve(state[0] ? ogSig : state[1] ? wlSig : undefined);
+//       }
+//     }
+//   });
+// }

@@ -22,7 +22,7 @@
     "firebase": "^9.6.10",
     "node-polyfill-webpack-plugin": "^1.1.4",
     "quasar": "^2.0.0",
-    "vue": "^3.0.0",
+    "vue": "^3.2.33",
     "vue-router": "^4.0.0",
     "vuex": "^4.0.1",
     "web3modal": "^1.9.5"

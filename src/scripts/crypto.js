@@ -1,6 +1,13 @@
 import { ethers } from "ethers";
-import { contractAddress, network, gasLimit } from "./config.json";
+import {
+  contractAddressCBC,
+  contractAddressStake,
+  contractAddressHoney,
+  network,
+  gasLimit,
+} from "./config.json";
 import abi from "./abi.json";
+import abiCBC from "./abiCBC.json";
 import { keys } from "./keys";
 import { getState } from "src/scripts/web3modal";
 import { initializeApp } from "firebase/app";
@@ -37,12 +44,7 @@ export function getContract() {
 
 function getContractJson() {
   const provider = new ethers.providers.JsonRpcProvider();
-  return new ethers.Contract(
-    contractAddressStake,
-    contractAddressHoney,
-    abi,
-    provider
-  );
+  return new ethers.Contract(contractAddressStake, abi, provider);
 }
 
 function getContractInfura() {
@@ -50,7 +52,75 @@ function getContractInfura() {
     network,
     keys.INFURA_KEY
   );
-  return [new ethers.Contract(contractAddress, abi, provider), provider];
+
+  return [new ethers.Contract(contractAddressStake, abi, provider), provider];
+}
+
+export function getContractCBC() {
+  switch (network) {
+    case "rinkeby":
+    case "homestead":
+      return getContractInfuraCBC()[0];
+    default:
+      return getContractJsonCBC();
+  }
+}
+
+function getContractJsonCBC() {
+  const provider = new ethers.providers.JsonRpcProvider();
+  return new ethers.Contract(contractAddressCBC, abiCBC, provider);
+}
+
+function getContractInfuraCBC() {
+  const provider = new ethers.providers.InfuraProvider(
+    network,
+    keys.INFURA_KEY
+  );
+
+  return [new ethers.Contract(contractAddressCBC, abiCBC, provider), provider];
+}
+
+export function getContractHoney() {
+  switch (network) {
+    case "rinkeby":
+    case "homestead":
+      return getContractInfuraHoney()[0];
+    default:
+      return getContractJsonHoney();
+  }
+}
+
+function getContractJsonHoney() {
+  const provider = new ethers.providers.JsonRpcProvider();
+  return new ethers.Contract(contractAddressHoney, abi, provider);
+}
+
+function getContractInfuraHoney() {
+  const provider = new ethers.providers.InfuraProvider(
+    network,
+    keys.INFURA_KEY
+  );
+  return [new ethers.Contract(contractAddressHoney, abi, provider), provider];
+}
+
+export async function getStakeable(address) {
+  const webState = getState();
+  const contractCBC = getContractCBC();
+
+  return await contractCBC.tokensOfOwner(webState.address);
+}
+
+export async function getStakedCBC() {
+  const webState = getState();
+  const contractCBC = getContractCBC();
+
+  return await contractCBC.tokensOfOwner(webState.address);
+}
+
+export async function getStaked(address) {
+  const contract = getContract();
+
+  return await contract.getStakedCount(address);
 }
 
 export async function getBalance(address) {

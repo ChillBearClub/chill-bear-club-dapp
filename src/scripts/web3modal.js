@@ -3,7 +3,7 @@ import WalletConnectProvider from "@walletconnect/web3-provider";
 import { ethers } from "ethers";
 import { network, infura } from "./config.json";
 import { keys } from "src/scripts/keys";
-
+import { getContract } from "src/scripts/crypto";
 const providerOptions = {
   walletconnect: {
     package: WalletConnectProvider,
@@ -74,7 +74,6 @@ export async function signIn() {
   const accounts = await provider.listAccounts();
   const address = accounts[0];
   const { chainId, name } = await provider.getNetwork();
-
   state = {
     provider,
     instance,

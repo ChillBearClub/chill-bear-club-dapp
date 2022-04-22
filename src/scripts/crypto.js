@@ -45,9 +45,9 @@ function getContractJson(address, abi) {
 }
 
 function getContractInfura(address, abi) {
-  const provider = new ethers.providers.InfuraProvider(
+  const provider = new ethers.providers.AlchemyProvider(
     network,
-    keys.INFURA_KEY
+    keys.ALCHEMY_KEY
   );
 
   return [new ethers.Contract(address, abi, provider), provider];
@@ -77,10 +77,12 @@ export async function stakeByIds(tokens) {
   const provider = getState().provider;
   const signer = await provider.getSigner();
   const address = await signer.getAddress();
-  const contractCBC = getContract(contractAddressStake, abiStake).connect(signer);
+  const contractCBC = getContract(contractAddressStake, abiStake).connect(
+    signer
+  );
   const tx = {
     nonce: (await provider.getTransactionCount(address)) || undefined,
-    gasLimit: gasLimit[network] * tokens.length
+    // gasLimit: gasLimit[network] + gasLimit["perToken"] * tokens.length + "",
   };
 
   return await contractCBC.stakeByIds(tokens, tx);
@@ -90,13 +92,15 @@ export async function unstakeAll(tokens) {
   const provider = getState().provider;
   const signer = await provider.getSigner();
   const address = await signer.getAddress();
-  const contractCBC = getContract(contractAddressStake, abiStake).connect(signer);
+  const contractCBC = getContract(contractAddressStake, abiStake).connect(
+    signer
+  );
   const tx = {
     nonce: (await provider.getTransactionCount(address)) || undefined,
-    gasLimit: gasLimit[network] * tokens.length
+    // gasLimit: gasLimit[network] * tokens.length,
   };
 
-  return await contractCBC.unstakeAll(tx);
+  return await contractCBC.unstakeByIds(tokens, tx);
 }
 
 export async function getBlockStaked(tokenId) {
@@ -105,12 +109,57 @@ export async function getBlockStaked(tokenId) {
   return await contractCBC.getBlockStaked(tokenId);
 }
 
+export async function getStakedTokenIds(address) {
+  const contractCBC = getContract(contractAddressStake, abiStake);
+
+  return await contractCBC.getCBCStaked(address);
+}
+
+export async function getStakedLength(tokenId) {
+  const provider = new ethers.providers.AlchemyProvider(
+    network,
+    keys.ALCHEMY_KEY
+  );
+  const contractCBC = getContract(contractAddressStake, abiStake);
+
+  return -(
+    (await contractCBC.getLockedUntil(tokenId)) -
+    2592000 -
+    (await provider.getBlock(await provider.getBlockNumber())).timestamp
+  );
+}
+
+// export async function isTimeLocked(tokenId) {
+//   const contractCBC = getContract(contractAddressStake, abiStake);
+
+//   return await contractCBC.
+// }
+
 // Chill contract
 
 export async function tokensOfOwner(address) {
   const contract = getContract(contractAddress, abi);
 
   return await contract.tokensOfOwner(address);
+}
+
+export async function isApprovedForStaking(address) {
+  const contract = getContract(contractAddress, abi);
+
+  return await contract.isApprovedForAll(address, contractAddressStake);
+}
+
+export async function approveForStaking() {
+  const provider = getState().provider;
+  const signer = await provider.getSigner();
+  const address = await signer.getAddress();
+  const contract = getContract(contractAddress, abi).connect(signer);
+  const tx = {
+    nonce: (await provider.getTransactionCount(address)) || undefined,
+    // gasLimit: gasLimit["approving"] + "",
+  };
+
+  return await contract.setApprovalForAll(contractAddressStake, true, tx);
 }
 
 // export async function getSignature(address, state) {

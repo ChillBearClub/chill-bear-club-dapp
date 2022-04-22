@@ -1,7 +1,7 @@
 {
   "name": "chill-bear-club-dapp",
   "version": "0.0.1",
-  "description": "A minting DAPP for the Chill Bear Club",
+  "description": "A staking DAPP for the Chill Bear Club",
   "productName": "Chill Bear Club",
   "author": "Andrew Burke <nomnomab1@gmail.com>",
   "private": true,

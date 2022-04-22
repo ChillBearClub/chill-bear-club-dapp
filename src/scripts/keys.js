@@ -5,4 +5,5 @@ import atob from "atob";
  */
 export const keys = {
   INFURA_KEY: atob(process.env.VUE_APP_INFURA_KEY),
+  ALCHEMY_KEY: atob(process.env.VUE_APP_ALCHEMY_KEY),
 };

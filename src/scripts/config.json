@@ -1,13 +1,15 @@
 {
-  "contractAddress": "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
-  "contractAddressStake": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-  "contractAddressHoney": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+  "contractAddress": "0x9dD9012Ac0b19B4cd819083F55c8361BAade7587",
+  "contractAddressStake": "0x73a200fB24f28B3319843225aAaF6E4221ec2ade",
+  "contractAddressHoney": "",
   "openseaId": "",
-  "network": "localhost",
+  "network": "rinkeby",
   "gasLimit": {
-    "localhost": "120000",
-    "rinkeby": "120000",
-    "homestead": "120000"
+    "localhost": 150000,
+    "rinkeby": 150000,
+    "homestead": 150000,
+    "perToken": 50000,
+    "approving": 70000
   },
   "etherscan": {
     "localhost": "url://tx/HASH",
@@ -20,8 +22,8 @@
     "homestead": "https://opensea.io/assets/ID/TOKEN"
   },
   "infura": {
-    "localhost": "https://doesnt-exist.infura.io/v3/",
-    "rinkeby": "https://rinkeby.infura.io/v3/",
-    "homestead": "https://mainnet.infura.io/v3/"
+    "localhost": "https://rinkeby.infura.io/v3/610918dbaae54ff6a10e15fd2e8c5b72",
+    "rinkeby": "https://eth-rinkeby.alchemyapi.io/v2/EVEIeMhn2a5m8ugPG4-_EePGTnrEs3Z_",
+    "homestead": "https://eth-mainnet.alchemyapi.io/v2/k11xgawuvbFgtbYgIovIJu0FwYBRGxAg"
   }
 }

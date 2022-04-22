@@ -87,6 +87,7 @@ module.exports = configure(function (ctx) {
       config: {
         notify: {},
       },
+      components: ['QCheckbox'],
 
       // iconSet: 'material-icons', // Quasar icon set
       // lang: 'en-US', // Quasar language pack
@@ -147,7 +148,7 @@ module.exports = configure(function (ctx) {
       manifest: {
         name: `Chill Bear Club`,
         short_name: `Chill Bear Club`,
-        description: `A minting DAPP for the Chill Bear Club`,
+        description: `A staking DAPP for the Chill Bear Club`,
         display: "standalone",
         orientation: "portrait",
         background_color: "#ffffff",
